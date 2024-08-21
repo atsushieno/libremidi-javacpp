@@ -1,0 +1,5 @@
+rootProject.name = "libremidi-javacpp"
+
+include("libremidi-javacpp")
+
+gradle.rootProject { ext.javacppVersion = '1.5.10' }

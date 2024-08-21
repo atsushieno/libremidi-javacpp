@@ -1,0 +1,16 @@
+plugins {
+    id("org.bytedeco.gradle-javacpp-build") version("1.5.10") apply(false)
+    id("org.bytedeco.gradle-javacpp-platform") version("1.5.10") apply(false)
+}
+
+allprojects {
+    group = "dev.atsushieno"
+    version = "0.1.0"
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+apply { from("${rootDir}/publish-root.gradle") }

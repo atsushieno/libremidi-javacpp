@@ -1,0 +1,179 @@
+plugins {
+    id ("java-library")
+    id ("org.bytedeco.gradle-javacpp-build")
+    id ("maven-publish")
+    id ("signing")
+}
+
+ext.targetArtifactName = "dev.atsushieno:libremidi-javacpp"
+
+configurations {
+    baseline
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+dependencies {
+    api "org.bytedeco:javacpp:$javacppVersion"
+    javacppPlatform "org.bytedeco:javacpp-platform:$javacppVersion"
+    javacppPlatform "$targetArtifactName:$version:linux-x86_64"
+    javacppPlatform "$targetArtifactName:$version:linux-arm64"
+    javacppPlatform "$targetArtifactName:$version:macosx-x86_64"
+    javacppPlatform "$targetArtifactName:$version:macosx-arm64"
+    //javacppPlatform "$targetArtifactName:$version:windows-x86_64"
+    //javacppPlatform "$targetArtifactName:$version:windows-arm64"
+    testRuntimeOnly "org.bytedeco:javacpp:$javacppVersion:$javacppPlatform"
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    //testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileJava.dependsOn(tasks.named("javacppBuildParser"))
+tasks.withType(WriteProperties).forEach {
+    it.dependsOn(tasks.named("javacppBuildParser"))
+}
+// Gradle is quite buggy and it fails to report what should be described to depend on.
+// It's buggy on 7.6 but we could ignore that on 7.x.
+// Starting 8.x they treat their bugs as *our* errors, which is not acceptable, so we use 7.6.
+// Gradle also neglects to react to our bug reports, so it is irrecoverable.
+tasks.withType(GenerateMavenPom).forEach {
+    it.dependsOn(tasks.named("javacppBuildParser"))
+    it.dependsOn(tasks.named("javacppBuildCommand"))
+}
+
+tasks.withType(org.bytedeco.gradle.javacpp.BuildTask).configureEach {
+    includePath = ["$buildDir/$javacppPlatform/include"]
+    linkPath = ["$buildDir/$javacppPlatform/lib"]
+}
+
+if(System.properties["os.name"].startsWith("Windows")) {
+    javacppBuildCommand { buildCommand = ['powershell', '-File', 'build.ps1'] }
+} else {
+    javacppBuildCommand { buildCommand = ['bash', 'build.sh'] }
+}
+
+javacppBuildParser {
+    classOrPackageNames = ['dev.atsushieno.libremidi_javacpp.presets.*']
+    outputDirectory = file("$buildDir/generated/sources/javacpp/")
+}
+
+javacppBuildCompiler {
+    copyLibs = true
+    deleteJniFiles false
+}
+
+jar {
+    manifest {
+        attributes 'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' '),
+                'Implementation-Title': 'libremidi JavaCPP binding',
+                'Implementation-Vendor': 'atsushieno',
+                'Implementation-Version': project.version,
+                'Specification-Title': 'libremidi JavaCPP binding',
+                'Specification-Vendor': 'atsushieno',
+                'Specification-Version': project.version
+    }
+}
+
+javadoc {
+    failOnError = false
+    //from javadoc.destinationDir
+}
+
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+/*
+// check API breakage
+tasks.register("japicmp", me.champeau.gradle.japicmp.JapicmpTask) {
+    oldArchives.from(configurations.baseline)
+    newArchives.from(files(jar.archivePath))
+    onlyModified = true
+    failOnModification = true
+    txtOutputFile = file("$buildDir/reports/japi.txt")
+    ignoreMissingClasses = true
+    includeSynthetic = true
+}
+
+check.dependsOn(japicmp)
+*/
+
+def pomClosure = {
+    name.set('libremidi-javacpp')
+    delegate.description.set('libremidi JavaCPP binding with prebuilt binaries')
+    url.set('https://github.com/atsushieno/libremidi-javacpp')
+    scm {
+        url.set('https://github.com/atsushieno/libremidi-javacpp')
+    }
+    licenses {
+        license {
+            name.set('the MIT License')
+            url.set('https://github.com/atsushieno/libremidi-javacpp/blob/main/LICENSE')
+        }
+    }
+    developers {
+        developer {
+            id.set('atsushieno')
+            name.set('Atsushi Eno')
+            email.set('atsushieno@gmail.com')
+        }
+    }
+}
+
+// publisher settings
+publishing {
+    publications {
+        if (!rootDir.list().contains("libremidi-javacpp"))
+            return
+
+        mavenJava(MavenPublication) {
+            from components.java
+            artifacts = [jar, javacppJar, javadocJar, sourcesJar] + javacppBuild.existingArtifacts(configurations.javacppPlatform)
+            pom pomClosure
+        }
+        mavenJavacppPlatform(MavenPublication) {
+            groupId project.group
+            artifactId project.name + "-platform"
+            artifacts = [javacppPlatformJar, javacppPlatformJavadocJar, javacppPlatformSourcesJar]
+            pom pomClosure
+            pom.withXml javacppBuild.xmlAction(configurations.javacppPlatform)
+        }
+    }
+
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${ossrhStagingRepositoryId}")
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
+}
+
+// keep it as is. It is replaced by CI release builds
+signing {}
+
+//if (tasks.withType(Sign).any())
+//    tasks.withType(AbstractPublishToMaven).dependsOn(tasks.withType(Sign).first())
