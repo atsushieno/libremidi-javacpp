@@ -5,8 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "libremidi-javacpp"
-
-include("libremidi-javacpp")
+rootProject.name = "libremidi-javacpp-examples"
+include("dogfooding")
 
 gradle.rootProject { ext.javacppVersion = '1.5.10' }

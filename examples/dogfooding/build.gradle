@@ -1,0 +1,25 @@
+
+plugins {
+    id ("application")
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.bytedeco.gradle-javacpp-platform'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+application {
+    mainClass = "DriverKt"
+}
+
+dependencies {
+    api("dev.atsushieno:libremidi-javacpp-platform:+")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "dev.atsushieno:ktmidi:+"
+}
+repositories {
+    mavenCentral()
+}
+
