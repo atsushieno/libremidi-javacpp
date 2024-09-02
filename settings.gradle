@@ -1,5 +1,13 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = "libremidi-javacpp"
 
 include("libremidi-javacpp")
+include("examples")
 
 gradle.rootProject { ext.javacppVersion = '1.5.10' }
