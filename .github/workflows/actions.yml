@@ -66,11 +66,11 @@ jobs:
           SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
       - name: rewrite build.gradle to require signing on awkward OS
         if: startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos')
-        run: sed -i "" "s/signing {}/signing { sign(publishing.publications) }/" javacpp-javacpp/build.gradle
+        run: sed -i "" "s/signing {}/signing { sign(publishing.publications) }/" libremidi-javacpp/build.gradle
       - name: rewrite build.gradle to require signing on standard OS
         shell: bash
         if: startsWith(github.ref, 'refs/tags/') && !contains(matrix.os, 'macos')
-        run: sed -i "s/signing {}/signing { sign(publishing.publications) }/" javacpp-javacpp/build.gradle
+        run: sed -i "s/signing {}/signing { sign(publishing.publications) }/" libremidi-javacpp/build.gradle
 
       # build or publish, depending on whether it is for release tags or not
       - name: build (ONLY FOR NON-RELEASES)
@@ -91,8 +91,8 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: javacpp-javacpp-jars
-          path: javacpp-javacpp/build/libs/*.jar
+          name: libremidi-javacpp-jars
+          path: libremidi-javacpp/build/libs/*.jar
       # Update API reference,
       - name: deploy to GitHub Pages
         # FIXME: enable it again once it's working again
@@ -100,4 +100,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: javacpp-javacpp/build/docs/javadoc
+          folder: libremidi-javacpp/build/docs/javadoc
