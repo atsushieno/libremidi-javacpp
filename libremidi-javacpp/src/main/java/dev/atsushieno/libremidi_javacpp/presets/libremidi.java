@@ -27,7 +27,8 @@ public class libremidi implements InfoMapper {
                 .put(new Info("input_removed").skip())
                 .put(new Info("output_added").skip())
                 .put(new Info("output_removed").skip())
-                .put(new Info().cppTypes("libremidi_midi_configuration").cppText("int version"))
+                // FIXME: https://github.com/atsushieno/libremidi-javacpp/issues/3
+                //.put(new Info().cppTypes("libremidi_midi_configuration").cppText("int version"))
             ;
     }
 }

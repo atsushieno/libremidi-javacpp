@@ -1,0 +1,19 @@
+diff --git a/include/libremidi/libremidi-c.h b/include/libremidi/libremidi-c.h
+index ea3d085..6e0dcf4 100644
+--- a/include/libremidi/libremidi-c.h
++++ b/include/libremidi/libremidi-c.h
+@@ -121,11 +121,9 @@ typedef struct libremidi_observer_configuration
+ 
+ typedef struct libremidi_midi_configuration
+ {
+-  enum
+-  {
+-    MIDI1,
+-    MIDI2
+-  } version;
++  static const int MIDI1 = 0;
++  static const int MIDI2 = 1;
++  int version;
+ 
+   union
+   {

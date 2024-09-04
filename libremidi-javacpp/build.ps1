@@ -14,6 +14,10 @@ echo "ScriptDir: $ScriptDir"
 
 dir
 Set-Location "$ScriptDir\..\external\libremidi"
+if (-not (Test-Path .patch.stamp)) {
+    patch -i $ScriptDir\..\javacpp-fix.patch -p1
+    New-Item -ItemType File -Name .patch.stamp
+}
 cmake -B "build-$PLATFORM"
 cmake --build "build-$PLATFORM" --config Release
 
