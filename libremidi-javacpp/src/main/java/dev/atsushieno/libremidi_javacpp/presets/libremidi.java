@@ -6,7 +6,8 @@ import org.bytedeco.javacpp.tools.*;
 
 @Properties(
     value = {
-        @Platform(include = "<libremidi/libremidi-c.h>", link = "libremidi")
+        @Platform(include = "<libremidi/libremidi-c.h>", link = "libremidi"),
+        @Platform(value = "windows", link = {"winmm", "libremidi"})
     },
     target = "dev.atsushieno.libremidi_javacpp",
     global = "dev.atsushieno.libremidi_javacpp.global.libremidi"

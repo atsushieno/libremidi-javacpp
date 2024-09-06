@@ -18,8 +18,8 @@ if (-not (Test-Path .patch.stamp)) {
     patch -i $ScriptDir\..\javacpp-fix.patch -p1
     New-Item -ItemType File -Name .patch.stamp
 }
-cmake -B "build-$PLATFORM"
-cmake --build "build-$PLATFORM" --config Release
+cmake -B "build-$PLATFORM" -DBUILD_SHARED_LIBS=false -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake --build "build-$PLATFORM"
 
 cmake --install "build-$PLATFORM" --prefix $DIST
 #New-Item -ItemType Directory -Path "$DIST\include\libremidi" -Force
