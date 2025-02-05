@@ -20,12 +20,7 @@ java {
 dependencies {
     api "org.bytedeco:javacpp:$javacppVersion"
     javacppPlatform "org.bytedeco:javacpp-platform:$javacppVersion"
-    javacppPlatform "$targetArtifactName:$version:linux-x86_64"
-    javacppPlatform "$targetArtifactName:$version:linux-arm64"
-    javacppPlatform "$targetArtifactName:$version:macosx-x86_64"
-    javacppPlatform "$targetArtifactName:$version:macosx-arm64"
-    //javacppPlatform "$targetArtifactName:$version:windows-x86_64"
-    //javacppPlatform "$targetArtifactName:$version:windows-arm64"
+    javacppPlatform "$targetArtifactName:$version"
     testRuntimeOnly "org.bytedeco:javacpp:$javacppVersion:$javacppPlatform"
     testImplementation platform('org.junit:junit-bom:5.9.1')
     //testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -86,25 +81,14 @@ javadoc {
     //from javadoc.destinationDir
 }
 
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
-    classifier 'javadoc'
-    from javadoc.destinationDir
-}
-
-tasks.register('sourcesJar', Jar) {
-    dependsOn classes
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 tasks.named("javadoc").configure { dependsOn("javacppPomProperties") }
 tasks.named("publish").configure { dependsOn("sourcesJar") }
+tasks.named("javacppBuildCommand").configure { dependsOn("sourcesJar") }
 tasks.named("javacppBuildCommand").configure { dependsOn("generatePomFileForMavenJavaPublication") }
 /* Gradle 8.10.2 still fails to report *correct* dependencies so I dump it again and went back to 7.6.
 Maybe I should just dump Gradle and use Maven instead.
