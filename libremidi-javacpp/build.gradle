@@ -88,11 +88,13 @@ javadoc {
 
 tasks.register('javadocJar', Jar) {
     dependsOn javadoc
+    classifier 'javadoc'
     from javadoc.destinationDir
 }
 
 tasks.register('sourcesJar', Jar) {
     dependsOn classes
+    classifier 'sources'
     from sourceSets.main.allSource
 }
 
@@ -102,6 +104,12 @@ artifacts {
 }
 
 tasks.named("javadoc").configure { dependsOn("javacppPomProperties") }
+tasks.named("publish").configure { dependsOn("sourcesJar") }
+tasks.named("javacppBuildCommand").configure { dependsOn("generatePomFileForMavenJavaPublication") }
+/* Gradle 8.10.2 still fails to report *correct* dependencies so I dump it again and went back to 7.6.
+Maybe I should just dump Gradle and use Maven instead.
+//tasks.named("generateMetadataFileForMavenJavaPublication").configure { dependsOn("javadocJar") }
+ */
 
 /*
 // check API breakage
@@ -142,6 +150,7 @@ def pomClosure = {
 
 // publisher settings
 publishing {
+
     publications {
         if (!rootDir.list().contains("libremidi-javacpp"))
             return
