@@ -88,13 +88,11 @@ javadoc {
 
 tasks.register('javadocJar', Jar) {
     dependsOn javadoc
-    classifier = 'javadoc'
     from javadoc.destinationDir
 }
 
 tasks.register('sourcesJar', Jar) {
     dependsOn classes
-    classifier = 'sources'
     from sourceSets.main.allSource
 }
 
@@ -102,6 +100,8 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
+
+tasks.named("javadoc").configure { dependsOn("javacppPomProperties") }
 
 /*
 // check API breakage
