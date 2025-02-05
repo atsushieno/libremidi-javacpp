@@ -48,7 +48,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
       # Only for release tags
       - name: setup gpg necessities
         if: startsWith(github.ref, 'refs/tags/')
