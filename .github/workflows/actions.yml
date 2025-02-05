@@ -7,7 +7,7 @@ on:
 
 jobs:
   create_staging_repository:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Create staging repository
     outputs:
       repository_id: ${{ steps.create.outputs.repository_id }}
@@ -89,7 +89,7 @@ jobs:
           SIGNING_SECRET_KEY_RING_FILE: ${{ format('{0}/{1}', github.workspace, secrets.SIGNING_SECRET_KEY_RING_FILE) }}
       - name: upload artifact - Jar
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libremidi-javacpp-jars
           path: libremidi-javacpp/build/libs/*.jar
