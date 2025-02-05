@@ -91,7 +91,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: libremidi-javacpp-jars-${matrix.os}
+          name: libremidi-javacpp-jars-${{matrix.os}}
           path: libremidi-javacpp/build/libs/*.jar
       # Update API reference,
       - name: deploy to GitHub Pages
