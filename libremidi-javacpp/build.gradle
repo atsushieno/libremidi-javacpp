@@ -35,19 +35,6 @@ test {
     useJUnitPlatform()
 }
 
-compileJava.dependsOn(tasks.named("javacppBuildParser"))
-tasks.withType(WriteProperties).forEach {
-    it.dependsOn(tasks.named("javacppBuildParser"))
-}
-// Gradle is quite buggy and it fails to report what should be described to depend on.
-// It's buggy on 7.6 but we could ignore that on 7.x.
-// Starting 8.x they treat their bugs as *our* errors, which is not acceptable, so we use 7.6.
-// Gradle also neglects to react to our bug reports, so it is irrecoverable.
-tasks.withType(GenerateMavenPom).forEach {
-    it.dependsOn(tasks.named("javacppBuildParser"))
-    it.dependsOn(tasks.named("javacppBuildCommand"))
-}
-
 tasks.withType(org.bytedeco.gradle.javacpp.BuildTask).configureEach {
     includePath = ["$buildDir/$javacppPlatform/include"]
     linkPath = ["$buildDir/$javacppPlatform/lib"]
@@ -91,14 +78,20 @@ java {
     withSourcesJar()
 }
 
+// Reason: Task ':javadoc' uses this output of task ':javacppPomProperties' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
 tasks.named("javadoc").configure { dependsOn("javacppPomProperties") }
-tasks.named("publish").configure { dependsOn("sourcesJar") }
+
+// Reason: Task ':javacppBuildCommand' uses this output of task ':sourcesJar' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
 tasks.named("javacppBuildCommand").configure { dependsOn("sourcesJar") }
+
+// Reason: Task ':compileTestJava' uses this output of task ':javacppPomProperties' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+tasks.named("compileTestJava").configure { dependsOn("javacppPomProperties") }
+
+// Reason: Task ':javacppBuildCommand' uses this output of task ':generatePomFileForMavenJavaPublication' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+// and this does not work
 tasks.named("javacppBuildCommand").configure { dependsOn("generatePomFileForMavenJavaPublication") }
-/* Gradle 8.10.2 still fails to report *correct* dependencies so I dump it again and went back to 7.6.
-Maybe I should just dump Gradle and use Maven instead.
-//tasks.named("generateMetadataFileForMavenJavaPublication").configure { dependsOn("javadocJar") }
- */
+// Instead, this should make it work:
+tasks.named("javacppBuildCommand").configure { dependsOn(tasks.withType(GenerateMavenPom)) }
 
 /*
 // check API breakage
